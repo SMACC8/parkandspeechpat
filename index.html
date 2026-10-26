@@ -477,7 +477,7 @@
 
     <div class="card">
       <div class="ttitle" style="font-size:22px">Linea obiettivo</div>
-      <p class="hint" style="margin-top:0">Una riga verde nel grafico dei test di intensità: quando la voce la supera, il tracciato diventa verde. Utile per i pazienti in difficoltà.</p>
+      <p class="hint" style="margin-top:0">Una riga verde nel grafico di <b>Forte e lungo</b>: quando la voce la supera, il tracciato diventa verde. Il valore si può cambiare per ogni paziente.</p>
       <div class="seg" id="goalSeg"><button data-g="off">Spenta</button><button data-g="on">Accesa</button></div>
       <div id="goalSet" style="margin-top:14px">
         <label>Valore — <span id="goalUnit"></span></label>
@@ -1113,6 +1113,7 @@ function clearScope(){ scope=$("scope"); sctx=scope.getContext("2d"); scopeHist=
    diventa verde. Vale solo nell'unità in cui è stata impostata (cambiando calibrazione
    o visualizzazione va reimpostata, altrimenti indicherebbe un livello diverso). */
 function goalLv(){
+  if(!curTest || curTest.id!=="forte") return null;          // solo "Forte e lungo"
   const g=SET.goal; if(!g || !g.on || !Number.isFinite(g.v)) return null;
   const sc=volScale(); if(sc.unit!==g.unit) return null;
   const lv=norm01(sc.from(g.v)); return (lv>0.02 && lv<0.99) ? lv : null;
@@ -1206,9 +1207,11 @@ function drawScope(){
   sctx.beginPath();
   scopeHist.forEach((p,i)=>{ const y=h-p.level*(h-12); i?sctx.lineTo(i,y):sctx.moveTo(i,y); });
   sctx.strokeStyle=CTEAL; sctx.lineWidth=2; sctx.stroke();
-  // niente linea del tono qui: su una griglia in dB confonderebbe (resta nel grafico dei risultati)
   const glv=goalLv();
   if(glv!==null) drawGoal(w,h,glv);
+  // linea del tono (60..400 Hz, scala propria: non va letta sulla griglia dei dB). Richiesta dalla
+  // logopedista: l'instabilità che compare dopo qualche secondo è un feedback utile allo sforzo
+  sctx.strokeStyle=CLIVE; drawF0Line(f0=> h-((f0-60)/340)*(h-12), 10, 2);
   drawGridLabels(w,h,grid);
   if(glv!==null) drawGoalLabel(w,h,glv);
 }
